@@ -1,6 +1,6 @@
+import json
 from tqdm import tqdm
 from threading import Thread
-import json
 
 
 N_TRIES = 1

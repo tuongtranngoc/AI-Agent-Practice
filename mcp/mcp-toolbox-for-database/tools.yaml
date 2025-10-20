@@ -1,0 +1,72 @@
+sources:
+  my-pg-source:
+    kind: postgres
+    host: 0.0.0.0
+    port: 5432
+    database: emr_db
+    user: ${USER_NAME}
+    password: ${PASSWORD}
+tools:
+  search-doctors-by-name:
+    kind: postgres-sql
+    source: my-pg-source
+    description: Search for doctors based on name.
+    parameters:
+      - name: name
+        type: string
+        description: The name of the doctor.
+    statement: SELECT * FROM doctors WHERE name ILIKE '%' || $1 || '%';
+  search-doctors-by-specialty:
+    kind: postgres-sql
+    source: my-pg-source
+    description: Search for doctors based on medical specialty.
+    parameters:
+      - name: specialty
+        type: string
+        description: The medical specialty (e.g., Cardiology, Neurology, Pediatrics).
+    statement: SELECT * FROM doctors WHERE specialty ILIKE '%' || $1 || '%';
+  book-appointment:
+    kind: postgres-sql
+    source: my-pg-source
+    description: >-
+      Book an appointment with a doctor by doctor ID. If the appointment is successfully booked, returns a NULL, raises an error if not.
+    parameters:
+      - name: doctor_id
+        type: string
+        description: The ID of the doctor to book an appointment with.
+    statement: UPDATE doctors SET booked = B'1' WHERE id = $1;
+  update-appointment:
+    kind: postgres-sql
+    source: my-pg-source
+    description: >-
+      Update an appointment's date and time by doctor ID. Returns a message
+      indicating whether the appointment was successfully updated or not.
+    parameters:
+      - name: doctor_id
+        type: string
+        description: The ID of the doctor for the appointment.
+      - name: appointment_date
+        type: string
+        description: The new appointment date.
+      - name: appointment_time
+        type: string
+        description: The new appointment time.
+    statement: >-
+      UPDATE doctors SET appointment_date = CAST($2 as date), appointment_time = CAST($3
+      as time) WHERE id = $1;
+  cancel-appointment:
+    kind: postgres-sql
+    source: my-pg-source
+    description: Cancel an appointment with a doctor by doctor ID.
+    parameters:
+      - name: doctor_id
+        type: string
+        description: The ID of the doctor for the appointment to cancel.
+    statement: UPDATE doctors SET booked = B'0' WHERE id = $1;
+toolsets:
+  my-toolset:
+    - search-doctors-by-name
+    - search-doctors-by-specialty
+    - book-appointment
+    - update-appointment
+    - cancel-appointment
